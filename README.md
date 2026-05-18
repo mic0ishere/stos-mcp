@@ -26,7 +26,7 @@ pnpm build
 
 ## Configuration
 
-You must configure credentials via a `config.json` situated in root directory.
+You must configure credentials via a `config.json` situated in root directory or via environment variables. The following configuration options are required:
 
 - `STOS_LOGIN` — STOS username
 - `STOS_PASSWORD` — STOS password
