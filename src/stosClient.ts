@@ -103,7 +103,8 @@ export class StosClient {
     const $ = load(html);
     const problemHtml = $("#problemtext").html();
     return (
-      convertToMarkdown(problemHtml || "").content || "No description available"
+      convertToMarkdown(problemHtml || "").content ||
+      "failed to fetch problem description"
     );
   }
 

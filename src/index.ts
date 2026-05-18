@@ -25,6 +25,8 @@ How to use:
 - Begin by calling the "task_description" tool to retrieve the problem statement.
 - After preparing your solution, use the "submit_solution" tool with your source code as input. It will return the verdict once the submission is processed. Wait for the response, as it may take some time for STOS to evaluate the submission.
 - You can also call "view_task_status" at any time to check the current status of your submission.
+
+In case of repeated STOS error responses (not related to code correctness) or ambiguous results, inform the user about the issue providing the error details, and suggest trying again later or checking the login details.
 `,
   },
 );
