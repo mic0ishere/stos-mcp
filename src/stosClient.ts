@@ -16,7 +16,11 @@ export class StosClient {
   cid: number;
   username: string;
   password: string;
+  
   phpSession?: string;
+  isSessionValid?: boolean;
+  lastSessionRefresh?: number;
+
   cookieBase: string;
   userAgent: string;
 
@@ -26,6 +30,8 @@ export class StosClient {
     this.cid = Number(cfg.STOS_CID || 0);
     this.username = String(cfg.STOS_LOGIN || "");
     this.password = String(cfg.STOS_PASSWORD || "");
+    
+    this.isSessionValid = false;
     this.cookieBase =
       "lang=en; stos_tabsize=8; stos_ws=false; stos_fontsize=16; stos_font=%22courier%20new%22%2C%20courier; stos_lineheight=1; stos_scheme=stos";
     this.userAgent =
@@ -83,8 +89,18 @@ export class StosClient {
     return this.phpSession;
   }
 
+  async setAsValidSession() {
+    this.isSessionValid = true;
+    this.lastSessionRefresh = Date.now();
+  }
+
   async ensureLoggedIn() {
-    if (!this.phpSession) {
+    if (
+      !this.phpSession ||
+      !this.isSessionValid ||
+      (this.lastSessionRefresh &&
+        Date.now() - this.lastSessionRefresh > 14 * 60 * 1000)
+    ) {
       await this.login();
     }
   }
@@ -99,6 +115,15 @@ export class StosClient {
         Accept: "text/html",
       },
     });
+
+    if (!res.ok) {
+      throw new Error(
+        `Failed to fetch task description: ${res.status} ${res.statusText}`,
+      );
+    }
+
+    this.setAsValidSession();
+
     const html = await res.text();
     const $ = load(html);
     const problemHtml = $("#problemtext").html();
@@ -113,18 +138,29 @@ export class StosClient {
     details?: string;
   }> {
     await this.ensureLoggedIn();
+
     const url = `${this.baseUrl}/index.php?p=status&pid=${this.pid}&cid=${this.cid}`;
     const res = await fetch(url, {
       headers: { Cookie: this.getCookieHeader(), "User-Agent": this.userAgent },
     });
+
+    if (!res.ok) {
+      throw new Error(
+        `Failed to fetch status: ${res.status} ${res.statusText}`,
+      );
+    }
+    this.setAsValidSession();
+
     const html = await res.text();
     const $ = load(html);
     const resultText = $("#result").text().trim();
     if (resultText === "Your submission is queued and awaits processing.") {
       return { status: "processing", details: resultText };
     }
+
     const content = $("#content").html()?.trim();
     const result = convertToMarkdown(content || "").content || resultText;
+
     if (result) {
       return { status: "processed", details: result };
     }
@@ -141,6 +177,14 @@ export class StosClient {
         Accept: "text/html",
       },
     });
+
+    if (!res.ok) {
+      throw new Error(
+        `Failed to fetch submit token: ${res.status} ${res.statusText}`,
+      );
+    }
+    this.setAsValidSession();
+
     const html = await res.text();
     const $ = load(html);
     let token =
@@ -194,6 +238,13 @@ export class StosClient {
       body: form,
       redirect: "manual",
     });
+    if (!submit.ok && submit.status !== 302) {
+      throw new Error(
+        `Failed to submit solution: ${submit.status} ${submit.statusText}`,
+      );
+    }
+
+    this.setAsValidSession();
 
     const deadline = Date.now() + timeoutMs;
     while (Date.now() < deadline) {
