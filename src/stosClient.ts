@@ -22,10 +22,10 @@ export class StosClient {
 
   constructor(cfg: any) {
     this.baseUrl = "https://stos.eti.pg.gda.pl";
-    this.pid = Number(cfg.PID || 0);
-    this.cid = Number(cfg.CID || 0);
-    this.username = String(cfg.LOGIN || "");
-    this.password = String(cfg.PASSWORD || "");
+    this.pid = Number(cfg.STOS_PID || 0);
+    this.cid = Number(cfg.STOS_CID || 0);
+    this.username = String(cfg.STOS_LOGIN || "");
+    this.password = String(cfg.STOS_PASSWORD || "");
     this.cookieBase =
       "lang=en; stos_tabsize=8; stos_ws=false; stos_fontsize=16; stos_font=%22courier%20new%22%2C%20courier; stos_lineheight=1; stos_scheme=stos";
     this.userAgent =
