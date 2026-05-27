@@ -20,6 +20,14 @@ const app = createServer(async (req, res) => {
     }
   }
 
+  const currentTime = new Date().toISOString();
+  console.log(
+    `[${currentTime}]`,
+    req.socket.remoteAddress,
+    req.method,
+    req.url,
+  );
+
   const server = createMCPServer();
 
   const transport = new NodeStreamableHTTPServerTransport({
