@@ -21,12 +21,9 @@ const app = createServer(async (req, res) => {
   }
 
   const currentTime = new Date().toISOString();
-  console.log(
-    `[${currentTime}]`,
-    req.socket.remoteAddress,
-    req.method,
-    req.url,
-  );
+  const remoteAddress =
+    req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+  console.log(`[${currentTime}]`, remoteAddress, req.method, req.url);
 
   const server = createMCPServer();
 
