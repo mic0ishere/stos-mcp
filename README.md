@@ -1,10 +1,12 @@
 # STOS MCP Server
 
-Lightweight MCP server that exposes three tools to interact with the STOS online judge:
+Lightweight MCP server that exposes three tools to interact with the Gdansk Tech's STOS online judge:
 
 - `task_description` — fetches the problem text from STOS and returns it (Markdown).
 - `view_task_status` — fetches the submission/status page; returns `queued` when submission is pending.
 - `submit_solution` — uploads source code to STOS (always as `main.cpp`) and polls for the final verdict.
+
+**Important:** This tool has been built only for educational/exploration purposes. You should not use it to submit solutions to STOS as part of an assignment or contest. The author is not responsible for any consequences of using this tool inappropriately.
 
 ## Features
 
@@ -33,6 +35,8 @@ You must configure credentials via a `config.json` situated in root directory or
 - `STOS_PID` — problem id (default: 1678)
 - `STOS_CID` — contest/course id (default: 819)
 
+In order to protect your STOS account, the MCP is restricted to a single problem (PID) in a single contest/course (CID).
+
 ## Run
 
 - Production (build then run):
@@ -42,7 +46,15 @@ pnpm build
 pnpm start
 ```
 
-By default the server connects using `StdioServerTransport` (stdin/stdout). To expose the MCP server over HTTP change the transport in `src/index.ts` to use Streamable HTTP examples from the MCP SDK.
+By default the server connects using `StdioServerTransport` (stdin/stdout). HTTP transport is useful for connecting it to cloud-based agents.
+
+### Running with HTTP transport
+
+After building, run the app with `pnpm http` and connect to `http://localhost:3000`. Pass the following headers to the MCP client:
+
+```
+Authorization: Bearer <sha256hash(STOS_LOGIN:STOS_PASSWORD)>
+```
 
 ## Tools (MCP)
 
@@ -60,6 +72,7 @@ Example `submit_solution` call (JSON argument to the MCP tool):
 
 ## Implementation notes
 
-- Main server entry: [src/index.ts](src/index.ts)
+- MCP Server: [src/index.ts](src/server.ts)
 - STOS HTTP client: [src/stosClient.ts](src/stosClient.ts)
 - Configuration: [src/config.ts](src/config.ts)
+- Transports: [src/http.ts](src/http.ts), [src/stdio.ts](src/stdio.ts)
